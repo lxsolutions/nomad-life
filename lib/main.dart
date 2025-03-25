@@ -1,13 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'services/driver_service.dart';
+import 'services/firebase_service.dart';
+import 'widgets/auth_wrapper.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/signup_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/settings_screen.dart';
+import 'utils/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO: Initialize Firebase
-  // await Firebase.initializeApp();
+  
+  // Initialize Firebase
+  await Firebase.initializeApp(
+    options: const FirebaseOptions(
+      apiKey: "YOUR_API_KEY",
+      authDomain: "my-drivers-app.firebaseapp.com",
+      projectId: "my-drivers-app",
+      storageBucket: "my-drivers-app.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    ),
+  );
+  
   runApp(const MyDriversApp());
 }
 
@@ -22,15 +40,26 @@ class MyDriversApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'My Drivers',
-        theme: ThemeData(
-          primaryColor: const Color(0xFF00C853),
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF00C853),
-            secondary: const Color(0xFFB0BEC5),
-          ),
-          useMaterial3: true,
-        ),
-        home: const HomeScreen(),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', ''),
+          Locale('th', ''),
+        ],
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const AuthWrapper(),
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+          '/home': (context) => const HomeScreen(),
+          '/settings': (context) => const SettingsScreen(),
+        },
       ),
     );
   }
