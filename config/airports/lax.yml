@@ -1,0 +1,87 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Los Angeles International Airport (LAX) configuration
+name: "Los Angeles International Airport"
+code: "LAX"
+country: "USA"
+
+# Fee structure
+fees:
+  pickup_fee: 12.95 # Daily airport fee for pickups
+  dropoff_fee: 0    # No additional fee for dropoffs at LAX
+
+# Allowed zones (geofenced areas where vehicles can be picked up/dropped off)
+zones:
+  - name: "Terminal Parking"
+    description: "Official airport parking lots with shuttle service to terminals"
+    allowed: true
+    coordinates:
+      type: "Polygon"
+      coordinates:
+        - [-118.403, 33.952]
+        - [-118.406, 33.952]
+        - [-118.406, 33.947]
+        - [-118.403, 33.947]
+
+  - name: "Rental Car Center"
+    description: "Consolidated rental car facility with shuttle service to terminals"
+    allowed: true
+    coordinates:
+      type: "Polygon"
+      coordinates:
+        - [-118.395, 33.960]
+        - [-118.402, 33.960]
+        - [-118.402, 33.957]
+        - [-118.395, 33.957]
+
+# Restrictions
+restrictions:
+  min_age: 21          # Minimum age requirement for rentals at LAX
+  max_vehicle_age: 5   # Maximum vehicle age allowed (in years)
+  prohibited_vehicles:
+    - "Commercial trucks"
+    - "Oversize vehicles"
+
+# Operating hours
+operating_hours:
+  pickup:
+    start_time: "06:00" # 24-hour format
+    end_time: "23:59"
+  dropoff:
+    start_time: "00:01"
+    end_time: "06:00"
+
+# Additional rules
+rules:
+  - "All vehicles must display current airport permit decals"
+  - "Vehicles must undergo annual safety inspections by approved providers"
+  - "Drivers must present valid ID and rental agreement at pickup"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
