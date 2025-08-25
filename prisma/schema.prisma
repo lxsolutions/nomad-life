@@ -371,3 +371,24 @@ enum RiskBand {
   HIGH
 }
 
+model AuditLog {
+  id            String   @id @default(cuid())
+  eventType     String   // e.g., 'airport_pickup', 'airport_dropoff'
+  userId        String?
+  vehicleId     String?
+  listingId     String?
+  bookingId     String?
+
+  user          User?    @relation(fields: [userId], references: [id])
+  vehicle       Vehicle? @relation(fields: [vehicleId], references: [id])
+  listing       Listing? @relation(fields: [listingId], references: [id])
+  booking       Booking? @relation(fields: [bookingId], references: [id])
+
+  airportCode   String
+  location      Geometry // Geo-coordinates of the event (Point type)
+  metadata      Json     // Additional data like vehicle condition, fees collected
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
