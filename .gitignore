@@ -89,3 +89,5 @@ build/Release
 .tern-port
 
 
+
+/lib/generated/prisma
