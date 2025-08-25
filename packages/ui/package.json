@@ -1,0 +1,23 @@
+
+
+
+
+
+
+{
+  "name": "@keyswitch/ui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}
+
+
+
+
+

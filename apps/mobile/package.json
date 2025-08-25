@@ -1,0 +1,21 @@
+
+
+
+{
+  "name": "@keyswitch/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start"
+  },
+  "dependencies": {
+    "expo": "^50",
+    "react-native": "^0.73"
+  },
+  "devDependencies": {
+    "@types/react": "^18",
+    "typescript": "^5"
+  }
+}
+
+
