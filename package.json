@@ -1,0 +1,29 @@
+{
+  "name": "booking-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "turbo run dev --filter=web...",
+    "build": "turbo run build --filter=...",
+    "start": "turbo run start --filter=web",
+    "test": "vitest",
+    "lint": "eslint . --ext .js,.ts,.tsx"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://<secret_hidden>@github.com/lxsolutions/booking-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lxsolutions/booking-app/issues"
+  },
+  "homepage": "https://github.com/lxsolutions/booking-app#readme",
+  "packageManager": "yarn@1.22.22",
+  "devDependencies": {
+    "prisma": "^6.14.0",
+    "turbo": "^2.5.6"
+  }
+}
