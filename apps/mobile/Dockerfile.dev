@@ -1,0 +1,48 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Development Dockerfile for Mobile App
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY apps/mobile/package.json .
+COPY apps/mobile/package-lock.json .
+
+RUN npm install --production=false
+
+COPY apps/mobile/ ./
+
+EXPOSE 3004
+
+CMD ["npm", "run", "start"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
