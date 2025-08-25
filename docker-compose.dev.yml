@@ -81,6 +81,32 @@ services:
     depends_on:
       - db
 
+  # Web App (Guest)
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile.dev
+    environment:
+      API_BASE_URL: http://api:3001
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:59227/api/v1
+    ports:
+      - "59227:3000"
+    depends_on:
+      - api
+
+  # Admin App
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile.dev
+    environment:
+      API_BASE_URL: http://api:3001
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:59227/api/v1
+    ports:
+      - "51286:3000"
+    depends_on:
+      - api
+
 volumes:
   pgdata:
 
