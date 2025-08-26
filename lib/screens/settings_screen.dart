@@ -1,5 +1,11 @@
+
+
+
+
+
+
 import 'package:flutter/material.dart';
-import 'package:shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -38,9 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
+      appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           ListTile(
@@ -68,15 +72,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             title: const Text('Preferred Driver Traits'),
             subtitle: const Text('Select traits you value most'),
+            trailing: IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _showTraitSelectionDialog(context),
+            ),
           ),
           Wrap(
-            spacing: 8,
             children: [
-              _buildTraitChip('Non-smoker'),
-              _buildTraitChip('Quiet'),
-              _buildTraitChip('Conversational'),
-              _buildTraitChip('Local expert'),
-              _buildTraitChip('English speaker'),
+              for (final trait in ['Punctual', 'Friendly', 'Safe Driver', 'Clean Car'])
+                _buildTraitChip(trait),
             ],
           ),
           const Divider(),
@@ -95,6 +99,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _savePreferences();
                   });
                 }
+              },
+            ),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Driver Mode'),
+            subtitle: const Text('Toggle driver mode to manage your availability'),
+            trailing: IconButton(
+              icon: Icon(Icons.directions_car),
+              onPressed: () {
+                // Navigate to DriverModeScreen
               },
             ),
           ),
@@ -119,4 +134,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
   }
+
+  Future<void> _showTraitSelectionDialog(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text('Select preferred driver traits',
+                  style: Theme.of(context).textTheme.headline6),
+            ),
+            Wrap(
+              children: [
+                for (final trait in ['Punctual', 'Friendly', 'Safe Driver', 'Clean Car'])
+                  _buildTraitChip(trait),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+
+
+
+

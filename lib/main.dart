@@ -1,11 +1,19 @@
+
+
+
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'services/driver_service.dart';
 import 'services/firebase_service.dart';
+import 'services/supabase_service.dart';
 import 'widgets/auth_wrapper.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/auth/phone_login_screen.dart';
 import 'screens/auth/signup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
@@ -13,8 +21,14 @@ import 'utils/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize Firebase
+
+  // Initialize Supabase
+  await Supabase.initialize(
+    url: const String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://your-project.supabase.co'),
+    anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: 'your-anon-key'),
+  );
+
+  // Initialize Firebase (for push notifications and fallback auth)
   await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "YOUR_API_KEY",
@@ -25,7 +39,7 @@ void main() async {
       appId: "YOUR_APP_ID"
     ),
   );
-  
+
   runApp(const MyDriversApp());
 }
 
@@ -37,6 +51,9 @@ class MyDriversApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => DriverService()),
+        Provider<SupabaseService>(
+          create: (_) => SupabaseService(Supabase.instance.client),
+        ),
       ],
       child: MaterialApp(
         title: 'My Drivers',
@@ -55,8 +72,8 @@ class MyDriversApp extends StatelessWidget {
         initialRoute: '/',
         routes: {
           '/': (context) => const AuthWrapper(),
-          '/login': (context) => const LoginScreen(),
-          '/signup': (context) => const SignupScreen(),
+          '/login': (context) => const PhoneLoginScreen(),
+          '/otp-verification': (context) => OtpVerificationScreen(phone: ''),
           '/home': (context) => const HomeScreen(),
           '/settings': (context) => const SettingsScreen(),
         },
@@ -64,3 +81,5 @@ class MyDriversApp extends StatelessWidget {
     );
   }
 }
+
+
