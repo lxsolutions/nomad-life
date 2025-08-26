@@ -50,6 +50,8 @@ dependencies:
 
   # Deep linking
   uni_links: ^0.5.1
+  # URL launching for SOS and dynamic links
+  url_launcher: ^6.2.4
 
   # PDF generation for marketing materials
   pdf: ^3.12.0

@@ -40,6 +40,26 @@ class AppLocalizations {
       'conversational': 'Conversational',
       'local_expert': 'Local Expert',
       'english_speaker': 'English Speaker',
+
+      // New M1 feature strings
+      'add_driver_qr_title': 'Add Driver via QR Code',
+      'scan_to_add_driver': 'Scan to Add This Driver',
+      'driver_added_successfully': 'Driver added successfully!',
+      'request_ride': 'Request Ride',
+      'schedule_ride': 'Schedule Ride',
+      'your_scheduled_rides': 'Your Scheduled Rides',
+      'availability_windows': 'Availability Windows',
+      'add_availability_window': 'Add Availability Window',
+      'sos_emergency': 'SOS - Emergency',
+      'trigger_sos': 'Trigger SOS',
+      'sos_shared': 'Ride status shared via SOS link.',
+      'enjoyed_the_ride': 'Enjoyed the ride? Add me on My Drivers.',
+      'scan_to_add_me': 'Scan to add me',
+      'download_app_at': 'Download app at',
+
+      // Thai translations for poster
+      'enjoyed_the_ride_th': 'ชอบการเดินทางไหม? เพิ่มฉันใน My Drivers',
+      'scan_to_add_me_th': 'สแกนเพื่อเพิ่มคนขับ',
     },
     'th': {
       'app_name': 'คนขับของฉัน',
@@ -69,6 +89,27 @@ class AppLocalizations {
       'conversational': 'ชอบพูดคุย',
       'local_expert': 'รู้จักเส้นทางดี',
       'english_speaker': 'พูดภาษาอังกฤษได้',
+      // New M1 feature strings
+      add_driver_qr_title: เพิ่มคนขับด้วย QR Code
+      scan_to_add_driver: สแกนเพื่อเพิ่มคนขับนี้
+      driver_added_successfully: เพิ่มคนขับเรียบร้อยแล้ว!
+      request_ride: ขอรถ
+      schedule_ride: จองรถ
+      your_scheduled_rides: การจองรถของคุณ
+      availability_windows: เวลาว่าง
+      add_availability_window: เพิ่มเวลาว่าง
+      sos_emergency: SOS - เหตุฉุกเฉิน
+      trigger_sos: ส่ง SOS
+      sos_shared: แชร์สถานะการเดินทางผ่านลิงก์ SOS
+
+      // QR Poster strings (same as English for consistency)
+      enjoyed_the_ride: Enjoyed the ride? Add me on My Drivers.
+      scan_to_add_me: Scan to add me
+      download_app_at: Download app at
+
+      // Thai translations for poster
+      enjoyed_the_ride_th: ชอบการเดินทางไหม? เพิ่มฉันใน My Drivers
+      scan_to_add_me_th: สแกนเพื่อเพิ่มคนขับ
     },
   };
 
@@ -99,6 +140,30 @@ class AppLocalizations {
   String get conversational => _localizedValues[locale.languageCode]!['conversational']!;
   String get localExpert => _localizedValues[locale.languageCode]!['local_expert']!;
   String get englishSpeaker => _localizedValues[locale.languageCode]!['english_speaker']!;
+  String get addDriverQRTitle => _localizedValues[locale.languageCode]![add_driver_qr_title]!
+  String get scanToAddDriver => _localizedValues[locale.languageCode]![scan_to_add_driver]!
+  String get driverAddedSuccessfully => _localizedValues[locale.languageCode]![driver_added_successfully]!
+  String get requestRide => _localizedValues[locale.languageCode]![request_ride]!
+
+  // Scheduling feature strings
+  String get scheduleRide => _localizedValues[locale.languageCode]![schedule_ride]!
+  String get yourScheduledRides => _localizedValues[locale.languageCode]![your_scheduled_rides]!
+  String get availabilityWindows => _localizedValues[locale.languageCode]![availability_windows]!
+  String get addAvailabilityWindow => _localizedValues[locale.languageCode]![add_availability_window]!
+
+  // SOS functionality
+  String get sosEmergency => _localizedValues[locale.languageCode]![sos_emergency]!
+  String get triggerSos => _localizedValues[locale.languageCode]![trigger_sos]!
+  String get sosShared => _localizedValues[locale.languageCode]![sos_shared]!
+
+  // QR Poster strings
+  String get enjoyedTheRide => _localizedValues[locale.languageCode]![enjoyed_the_ride]!
+  String get scanToAddMe => _localizedValues[locale.languageCode]![scan_to_add_me]!
+  String get downloadAppAt => _localizedValues[locale.languageCode]![download_app_at]!
+
+  // Thai translations for poster (duplicate here)
+  String get enjoyedTheRideTh => _localizedValues[locale.languageCode]![enjoyed_the_ride_th]!
+  String get scanToAddMeTh => _localizedValues[locale.languageCode]![scan_to_add_me_th]!
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,12 +1,17 @@
+
+
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences.dart';
+import 'dart:async';
 
 class LocationService extends ChangeNotifier {
   Position? _currentPosition;
   bool _isLocationEnabled = false;
   final String _lastLatKey = 'last_latitude';
   final String _lastLngKey = 'last_longitude';
+  final String _lastUpdateKey = 'last_location_update';
+  Timer? _heartbeatTimer;
 
   Position? get currentPosition => _currentPosition;
   bool get isLocationEnabled => _isLocationEnabled;
@@ -21,7 +26,7 @@ class LocationService extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final lat = prefs.getDouble(_lastLatKey);
       final lng = prefs.getDouble(_lastLngKey);
-      
+
       if (lat != null && lng != null) {
         _currentPosition = Position(
           latitude: lat,
@@ -43,7 +48,7 @@ class LocationService extends ChangeNotifier {
 
   Future<void> _saveCurrentLocation() async {
     if (_currentPosition == null) return;
-    
+
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setDouble(_lastLatKey, _currentPosition!.latitude);
@@ -95,9 +100,13 @@ class LocationService extends ChangeNotifier {
       _currentPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      
+
       await _saveCurrentLocation();
       notifyListeners();
+
+      // Start heartbeat timer when location is updated
+      _startHeartbeatTimer();
+
       return _currentPosition;
     } catch (e) {
       debugPrint('Error getting current location: $e');
@@ -142,4 +151,49 @@ class LocationService extends ChangeNotifier {
       ),
     };
   }
+
+  // Heartbeat throttling for location updates
+  void _startHeartbeatTimer() {
+    if (_heartbeatTimer != null) {
+      _heartbeatTimer!.cancel();
+    }
+
+    final prefs = SharedPreferences.getInstance().then((prefs) async {
+      int lastUpdateTime = (await prefs.getInt(_lastUpdateKey)) ?? 0;
+      DateTime now = DateTime.now();
+
+      // Only send heartbeat if at least 10 seconds have passed
+      Duration elapsed = now.difference(DateTime.fromMillisecondsSinceEpoch(lastUpdateTime));
+      if (elapsed.inSeconds < 10) {
+        int delayMs = max(0, 10000 - elapsed.inMilliseconds);
+        _heartbeatTimer = Timer(Duration(milliseconds: delayMs), () => _sendHeartbeat(prefs));
+      } else {
+        // Send immediately if enough time has passed
+        _sendHeartbeat(prefs);
+      }
+    });
+  }
+
+  Future<void> _sendHeartbeat(SharedPreferences prefs) async {
+    try {
+      // Update last update timestamp
+      await prefs.setInt(_lastUpdateKey, DateTime.now().millisecondsSinceEpoch);
+
+      if (_currentPosition != null) {
+        print('Sending heartbeat: ${_currentPosition!.latitude}, ${_currentPosition!.longitude}');
+        // TODO: Send location to Supabase driver_status table
+
+        // Reset timer for next update
+        _startHeartbeatTimer();
+      }
+    } catch (e) {
+      debugPrint('Error sending heartbeat: $e');
+    }
+  }
+
+  void dispose() {
+    _heartbeatTimer?.cancel();
+    super.dispose();
+  }
 }
+
