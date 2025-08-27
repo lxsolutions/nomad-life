@@ -9,6 +9,7 @@ yarn-error.log*
 .next/
 dist/
 build/
+.turbo/
 
 # Environment variables
 .env
