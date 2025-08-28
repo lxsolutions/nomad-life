@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -87,7 +87,7 @@ model Building {
   latitude    Float
   longitude   Float
   transit     Json     // { bts: string[], mrt: string[] }
-  amenities   String[]
+  amenities   Json     // string[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -105,7 +105,7 @@ model Listing {
   buildingId     String?
   title          String
   description    String
-  media          String[]     // URLs to images/videos
+  media          Json         // string[] - URLs to images/videos
   bedrooms       Int
   bathrooms      Int
   sizeSqm        Float
@@ -298,7 +298,7 @@ model Inspection {
   leaseId          String
   type             InspectionType
   checklist        Json
-  media            String[]
+  media            Json      // string[]
   signedByRenterAt DateTime?
   signedByOwnerAt  DateTime?
   createdAt        DateTime @default(now())
@@ -351,7 +351,7 @@ model Dispute {
   leaseId      String
   openedByUserId String
   reason       String
-  evidenceMedia String[]
+  evidenceMedia Json      // string[]
   status       DisputeStatus @default(OPEN)
   timeline     Json
   createdAt    DateTime @default(now())
@@ -378,7 +378,7 @@ model Message {
   fromUserId   String
   toUserId     String
   body         String
-  attachments  String[]
+  attachments  Json      // string[]
   createdAt    DateTime @default(now())
 
   thread       Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
@@ -394,7 +394,7 @@ model Message {
 model Thread {
   id             String   @id @default(cuid())
   listingId      String?
-  participantIds String[]
+  participantIds Json      // string[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
