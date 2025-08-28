@@ -32,6 +32,7 @@ model User {
   leases        LeaseDraft[]  @relation("LeaseRenter")
   disputes      Dispute[]     @relation("DisputeOpenedBy")
   messages      Message[]     @relation("MessageFromUser")
+  receivedMessages Message[]  @relation("MessageToUser")
   threads       Thread[]      @relation("ThreadParticipants")
 
   @@map("users")
@@ -59,6 +60,7 @@ model ProfileAgent {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings       Listing[]
   viewingRequests ViewingRequest[] @relation("ViewingRequestAgent")
+  leaseDrafts    LeaseDraft[]
 
   @@map("profile_agents")
 }
@@ -72,6 +74,7 @@ model ProfileOwner {
 
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   listings      Listing[]
+  leaseDrafts   LeaseDraft[]
 
   @@map("profile_owners")
 }
@@ -128,6 +131,7 @@ model Listing {
   viewingRequests ViewingRequest[]
   leases         LeaseDraft[]
   reviews        Review[]     @relation("ReviewListing")
+  threads        Thread[]
 
   @@map("listings")
   @@index([ownerId])
@@ -218,6 +222,7 @@ model Review {
   verified    Boolean  @default(false)
 
   reviewer    User     @relation("ReviewReviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  listing     Listing? @relation("ReviewListing", fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@map("reviews")
   @@index([subjectType, subjectId])
@@ -378,7 +383,7 @@ model Message {
 
   thread       Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
   fromUser     User     @relation("MessageFromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser       User     @relation(fields: [toUserId], references: [id], onDelete: Cascade)
+  toUser       User     @relation("MessageToUser", fields: [toUserId], references: [id], onDelete: Cascade)
 
   @@map("messages")
   @@index([threadId])
