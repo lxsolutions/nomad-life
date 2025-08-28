@@ -1,0 +1,512 @@
+
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Users & Authentication
+model User {
+  id        String   @id @default(cuid())
+  email     String?  @unique
+  phone     String?  @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Auth relationships
+  accounts          Account[]
+  sessions          Session[]
+  verificationTokens VerificationToken[]
+
+  // Profile relationships
+  profile Profile?
+
+  // Stays relationships
+  staysBooking      StaysBooking[]
+  staysReview       StaysReview[]
+  staysHostProfile  StaysHostProfile?
+
+  // Vehicles relationships
+  vehiclesBooking   VehiclesBooking[]
+  vehiclesHostProfile VehiclesHostProfile?
+  vehiclesReview    VehiclesReview[]
+
+  // Drivers relationships
+  driverProfile     DriverProfile?
+  savedDrivers      SavedDriver[]
+  rides             Ride[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  dateOfBirth DateTime?
+  nationality String?
+  documentId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Stays (NomadBooking + RentShield TH)
+model StaysProperty {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  type        String   // apartment, house, condo, etc.
+  pricePerNight Decimal
+  currency    String   @default("USD")
+  location    String
+  city        String
+  country     String
+  latitude    Float?
+  longitude   Float?
+  amenities   String[]
+  images      String[]
+  maxGuests   Int
+  bedrooms    Int
+  bathrooms    Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hostId      String
+  host        StaysHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  bookings    StaysBooking[]
+  availability StaysAvailability[]
+  reviews     StaysReview[]
+
+  // Bangkok-specific fields
+  isBangkokProperty Boolean @default(false)
+  trustScore        Float?   // NomadScore
+  leaseTemplateId   String?
+
+  @@map("stays_properties")
+}
+
+model StaysHostProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  bio         String?
+  rating      Float?   @default(0)
+  totalReviews Int     @default(0)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties  StaysProperty[]
+  bookings    StaysBooking[]
+
+  @@map("stays_host_profiles")
+}
+
+model StaysAvailability {
+  id         String   @id @default(cuid())
+  propertyId String
+  date       DateTime
+  isAvailable Boolean @default(true)
+  price      Decimal?
+
+  property StaysProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, date])
+  @@map("stays_availability")
+}
+
+model StaysBooking {
+  id          String   @id @default(cuid())
+  propertyId  String
+  userId      String
+  checkIn     DateTime
+  checkOut    DateTime
+  totalNights Int
+  totalPrice  Decimal
+  currency    String   @default("USD")
+  status      String   // pending, confirmed, cancelled, completed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  property StaysProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  // Bangkok lease protection
+  hasLeaseProtection Boolean @default(false)
+  leaseDocumentId    String?
+
+  @@map("stays_bookings")
+}
+
+model StaysReview {
+  id         String   @id @default(cuid())
+  propertyId String
+  userId     String
+  rating     Int      // 1-5
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  property StaysProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, userId])
+  @@map("stays_reviews")
+}
+
+// Flights (FlexHop)
+model FlightSearch {
+  id          String   @id @default(cuid())
+  userId      String?
+  origin      String
+  destination String
+  departureDate DateTime
+  returnDate  DateTime?
+  adults      Int      @default(1)
+  children    Int      @default(0)
+  infants     Int      @default(0)
+  cabinClass  String   @default("economy")
+  maxStopovers Int?    @default(2)
+  createdAt   DateTime @default(now())
+
+  user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  itineraries FlightItinerary[]
+
+  @@map("flight_searches")
+}
+
+model FlightItinerary {
+  id             String   @id @default(cuid())
+  searchId       String
+  airline        String
+  flightNumber   String
+  departureTime  DateTime
+  arrivalTime    DateTime
+  duration       Int      // in minutes
+  price          Decimal
+  currency       String   @default("USD")
+  stops          Int
+  layoverCities  String[]
+  createdAt      DateTime @default(now())
+
+  search FlightSearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
+
+  @@map("flight_itineraries")
+}
+
+// Vehicles (Keyswitch)
+model Vehicle {
+  id          String   @id @default(cuid())
+  make        String
+  model       String
+  year        Int
+  licensePlate String
+  color       String
+  features    String[]
+  dailyRate   Decimal
+  currency    String   @default("USD")
+  location    String
+  city        String
+  country     String
+  latitude    Float?
+  longitude   Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  hostId      String
+  host        VehiclesHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  bookings    VehiclesBooking[]
+  availability VehiclesAvailability[]
+  reviews     VehiclesReview[]
+
+  // Airport compliance
+  isAirportCompliant Boolean @default(false)
+  airportFees        Decimal? @default(0)
+
+  @@map("vehicles")
+}
+
+model VehiclesHostProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  bio         String?
+  rating      Float?   @default(0)
+  totalReviews Int     @default(0)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicles    Vehicle[]
+  bookings    VehiclesBooking[]
+
+  @@map("vehicles_host_profiles")
+}
+
+model VehiclesAvailability {
+  id        String   @id @default(cuid())
+  vehicleId String
+  date      DateTime
+  isAvailable Boolean @default(true)
+  price     Decimal?
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, date])
+  @@map("vehicles_availability")
+}
+
+model VehiclesBooking {
+  id          String   @id @default(cuid())
+  vehicleId   String
+  userId      String
+  startDate   DateTime
+  endDate     DateTime
+  totalDays   Int
+  totalPrice  Decimal
+  currency    String   @default("USD")
+  status      String   // pending, confirmed, cancelled, completed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  // Airport pickup/dropoff
+  isAirportPickup   Boolean @default(false)
+  airportFee        Decimal? @default(0)
+  flightNumber      String?
+  terminal          String?
+
+  @@map("vehicles_bookings")
+}
+
+model VehiclesReview {
+  id        String   @id @default(cuid())
+  vehicleId String
+  userId    String
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, userId])
+  @@map("vehicles_reviews")
+}
+
+// Drivers (My-Drivers)
+model DriverProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  licenseNumber String?
+  vehicleMake String?
+  vehicleModel String?
+  vehicleYear Int?
+  licensePlate String?
+  rating      Float?   @default(0)
+  totalRides  Int      @default(0)
+  isOnline    Boolean  @default(false)
+  lastOnline  DateTime?
+  currentLocation String?
+  currentLatitude Float?
+  currentLongitude Float?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rides       Ride[]
+  savedBy     SavedDriver[]
+
+  @@map("driver_profiles")
+}
+
+model SavedDriver {
+  id          String   @id @default(cuid())
+  userId      String
+  driverId    String
+  nickname    String?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, driverId])
+  @@map("saved_drivers")
+}
+
+model Ride {
+  id          String   @id @default(cuid())
+  userId      String
+  driverId    String
+  pickupLocation String
+  dropoffLocation String
+  pickupTime  DateTime
+  status      String   // requested, accepted, in_progress, completed, cancelled
+  price       Decimal
+  currency    String   @default("USD")
+  distance    Float?   // in km
+  duration    Int?     // in minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  payments Payment[]
+  messages RideMessage[]
+
+  @@map("rides")
+}
+
+model RideMessage {
+  id        String   @id @default(cuid())
+  rideId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  ride Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ride_messages")
+}
+
+// Payments & Trust
+model Payment {
+  id          String   @id @default(cuid())
+  amount      Decimal
+  currency    String   @default("USD")
+  status      String   // pending, completed, failed, refunded
+  paymentMethod String // stripe, stripe_connect
+  stripePaymentId String?
+  stripeConnectAccountId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Polymorphic relationships
+  bookingId   String?  // For stays or vehicles bookings
+  bookingType String?  // 'stays' or 'vehicles'
+  rideId      String?  // For rides
+
+  // Relationships
+  staysBooking   StaysBooking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  vehiclesBooking VehiclesBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  ride           Ride?           @relation(fields: [rideId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model TrustScore {
+  id          String   @id @default(cuid())
+  userId      String
+  score       Float    // 0-100
+  category    String   // overall, stays, vehicles, drivers
+  reasons     String[]
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+  @@map("trust_scores")
+}
+
+model Dispute {
+  id          String   @id @default(cuid())
+  userId      String
+  bookingId   String?
+  bookingType String?  // 'stays', 'vehicles', 'ride'
+  reason      String
+  status      String   // open, in_review, resolved, closed
+  createdAt   DateTime @default(now())
+  resolvedAt  DateTime?
+  resolution  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("disputes")
+}
+
+// Bangkok-specific models (RentShield TH)
+model LeaseTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  content     String   // JSON or template content
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("lease_templates")
+}
+
+model AirportRule {
+  id          String   @id @default(cuid())
+  airportCode String
+  rules       String   // JSON rules configuration
+  fees        String   // JSON fee structure
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([airportCode])
+  @@map("airport_rules")
+}
+

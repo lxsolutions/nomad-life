@@ -1,0 +1,29 @@
+
+
+
+{
+  "name": "@nomad-life/core",
+  "version": "1.0.0",
+  "description": "Shared domain logic for Nomad Life platform",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf .turbo node_modules dist",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@nomad-life/db": "workspace:*",
+    "zod": "^3.0.0"
+  },
+  "devDependencies": {
+    "@nomad-life/config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
+
+
