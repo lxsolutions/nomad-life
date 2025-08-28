@@ -1,5 +1,3 @@
-
-
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -14,38 +12,67 @@ datasource db {
 
 // Users & Authentication
 model User {
-  id        String   @id @default(cuid())
-  email     String?  @unique
-  phone     String?  @unique
-  name      String?
-  avatar    String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  email       String?   @unique
+  phone       String?   @unique
+  name        String?
+  avatar      String?
+  lineId      String?   @unique // LINE integration for Thailand
+  locale      String    @default("en") // i18n support
+  role        UserRole  @default(guest)
+  kycStatus   KYCStatus @default(not_started)
+  verifiedAt  DateTime? // Account verification timestamp
+  ratingAvg   Float?    @default(0.0) // Average rating across services
+  ratingCount Int?      @default(0) // Number of ratings
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Auth relationships
-  accounts          Account[]
-  sessions          Session[]
+  accounts           Account[]
+  sessions           Session[]
   verificationTokens VerificationToken[]
 
   // Profile relationships
   profile Profile?
 
   // Stays relationships
-  staysBooking      StaysBooking[]
-  staysReview       StaysReview[]
-  staysHostProfile  StaysHostProfile?
+  staysBooking     StaysBooking[]
+  staysReview      StaysReview[]
+  staysHostProfile StaysHostProfile?
 
   // Vehicles relationships
-  vehiclesBooking   VehiclesBooking[]
+  vehiclesBooking     VehiclesBooking[]
   vehiclesHostProfile VehiclesHostProfile?
-  vehiclesReview    VehiclesReview[]
+  vehiclesReview      VehiclesReview[]
 
   // Drivers relationships
   driverProfile     DriverProfile?
   savedDrivers      SavedDriver[]
   rides             Ride[]
+  FlightSearch      FlightSearch[]
+  RideMessage       RideMessage[]
+  TrustScore        TrustScore[]
+  Dispute           Dispute[]
+  VisaApplication   VisaApplication[]
+  DocumentVaultItem DocumentVaultItem[]
+  Reminder          Reminder[]
 
   @@map("users")
+}
+
+enum UserRole {
+  guest
+  host
+  admin
+  rider
+  driver
+}
+
+enum KYCStatus {
+  not_started
+  in_progress
+  approved
+  rejected
 }
 
 model Account {
@@ -82,19 +109,21 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+  User       User?    @relation(fields: [userId], references: [id])
+  userId     String?
 
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
 
 model Profile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
+  id          String    @id @default(cuid())
+  userId      String    @unique
   dateOfBirth DateTime?
   nationality String?
   documentId  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -103,64 +132,74 @@ model Profile {
 
 // Stays (NomadBooking + RentShield TH)
 model StaysProperty {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  type        String   // apartment, house, condo, etc.
-  pricePerNight Decimal
-  currency    String   @default("USD")
-  location    String
-  city        String
-  country     String
-  latitude    Float?
-  longitude   Float?
-  amenities   String[]
-  images      String[]
-  maxGuests   Int
-  bedrooms    Int
-  bathrooms    Int
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String    @id @default(cuid())
+  title            String
+  description      String
+  type             String // apartment, house, condo, etc.
+  pricePerNight    Decimal
+  currency         String    @default("USD")
+  location         String
+  city             String
+  country          String
+  latitude         Float?
+  longitude        Float?
+  amenities        String[]
+  images           String[]
+  maxGuests        Int
+  bedrooms         Int
+  bathrooms        Int
+  sizeSqm          Float? // Property size in square meters
+  floor            Int? // Floor number
+  furnished        Boolean   @default(false) // Is the property furnished
+  minTermNights    Int?      @default(30) // Minimum stay in nights
+  petsAllowed      Boolean? // Are pets allowed
+  parkingAvailable Boolean? // Parking availability
+  utilitiesNote    String? // Utilities information
+  isActive         Boolean   @default(true)
+  availableFrom    DateTime? // When property becomes available
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  hostId      String
-  host        StaysHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId String
+  host   StaysHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
-  bookings    StaysBooking[]
+  bookings     StaysBooking[]
   availability StaysAvailability[]
-  reviews     StaysReview[]
+  reviews      StaysReview[]
 
   // Bangkok-specific fields
   isBangkokProperty Boolean @default(false)
-  trustScore        Float?   // NomadScore
+  trustScore        Float? // NomadScore
   leaseTemplateId   String?
+  district          String? // Bangkok district
+  transitInfo       String? // JSON transit information (BTS/MRT)
 
   @@map("stays_properties")
 }
 
 model StaysHostProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  bio         String?
-  rating      Float?   @default(0)
-  totalReviews Int     @default(0)
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  bio          String?
+  rating       Float?   @default(0)
+  totalReviews Int      @default(0)
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  properties  StaysProperty[]
-  bookings    StaysBooking[]
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties StaysProperty[]
+  bookings   StaysBooking[]
 
   @@map("stays_host_profiles")
 }
 
 model StaysAvailability {
-  id         String   @id @default(cuid())
-  propertyId String
-  date       DateTime
-  isAvailable Boolean @default(true)
-  price      Decimal?
+  id          String   @id @default(cuid())
+  propertyId  String
+  date        DateTime
+  isAvailable Boolean  @default(true)
+  price       Decimal?
 
   property StaysProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
@@ -177,7 +216,7 @@ model StaysBooking {
   totalNights Int
   totalPrice  Decimal
   currency    String   @default("USD")
-  status      String   // pending, confirmed, cancelled, completed
+  status      String // pending, confirmed, cancelled, completed
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -186,8 +225,10 @@ model StaysBooking {
   payments Payment[]
 
   // Bangkok lease protection
-  hasLeaseProtection Boolean @default(false)
+  hasLeaseProtection Boolean           @default(false)
   leaseDocumentId    String?
+  StaysHostProfile   StaysHostProfile? @relation(fields: [staysHostProfileId], references: [id])
+  staysHostProfileId String?
 
   @@map("stays_bookings")
 }
@@ -196,7 +237,7 @@ model StaysReview {
   id         String   @id @default(cuid())
   propertyId String
   userId     String
-  rating     Int      // 1-5
+  rating     Int // 1-5
   comment    String?
   createdAt  DateTime @default(now())
 
@@ -209,38 +250,38 @@ model StaysReview {
 
 // Flights (FlexHop)
 model FlightSearch {
-  id          String   @id @default(cuid())
-  userId      String?
-  origin      String
-  destination String
+  id            String    @id @default(cuid())
+  userId        String?
+  origin        String
+  destination   String
   departureDate DateTime
-  returnDate  DateTime?
-  adults      Int      @default(1)
-  children    Int      @default(0)
-  infants     Int      @default(0)
-  cabinClass  String   @default("economy")
-  maxStopovers Int?    @default(2)
-  createdAt   DateTime @default(now())
+  returnDate    DateTime?
+  adults        Int       @default(1)
+  children      Int       @default(0)
+  infants       Int       @default(0)
+  cabinClass    String    @default("economy")
+  maxStopovers  Int?      @default(2)
+  createdAt     DateTime  @default(now())
 
-  user        User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
   itineraries FlightItinerary[]
 
   @@map("flight_searches")
 }
 
 model FlightItinerary {
-  id             String   @id @default(cuid())
-  searchId       String
-  airline        String
-  flightNumber   String
-  departureTime  DateTime
-  arrivalTime    DateTime
-  duration       Int      // in minutes
-  price          Decimal
-  currency       String   @default("USD")
-  stops          Int
-  layoverCities  String[]
-  createdAt      DateTime @default(now())
+  id            String   @id @default(cuid())
+  searchId      String
+  airline       String
+  flightNumber  String
+  departureTime DateTime
+  arrivalTime   DateTime
+  duration      Int // in minutes
+  price         Decimal
+  currency      String   @default("USD")
+  stops         Int
+  layoverCities String[]
+  createdAt     DateTime @default(now())
 
   search FlightSearch @relation(fields: [searchId], references: [id], onDelete: Cascade)
 
@@ -249,61 +290,61 @@ model FlightItinerary {
 
 // Vehicles (Keyswitch)
 model Vehicle {
-  id          String   @id @default(cuid())
-  make        String
-  model       String
-  year        Int
+  id           String   @id @default(cuid())
+  make         String
+  model        String
+  year         Int
   licensePlate String
-  color       String
-  features    String[]
-  dailyRate   Decimal
-  currency    String   @default("USD")
-  location    String
-  city        String
-  country     String
-  latitude    Float?
-  longitude   Float?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  color        String
+  features     String[]
+  dailyRate    Decimal
+  currency     String   @default("USD")
+  location     String
+  city         String
+  country      String
+  latitude     Float?
+  longitude    Float?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  hostId      String
-  host        VehiclesHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  hostId String
+  host   VehiclesHostProfile @relation(fields: [hostId], references: [id], onDelete: Cascade)
 
-  bookings    VehiclesBooking[]
+  bookings     VehiclesBooking[]
   availability VehiclesAvailability[]
-  reviews     VehiclesReview[]
+  reviews      VehiclesReview[]
 
   // Airport compliance
-  isAirportCompliant Boolean @default(false)
+  isAirportCompliant Boolean  @default(false)
   airportFees        Decimal? @default(0)
 
   @@map("vehicles")
 }
 
 model VehiclesHostProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  bio         String?
-  rating      Float?   @default(0)
-  totalReviews Int     @default(0)
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  bio          String?
+  rating       Float?   @default(0)
+  totalReviews Int      @default(0)
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicles    Vehicle[]
-  bookings    VehiclesBooking[]
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicles Vehicle[]
+  bookings VehiclesBooking[]
 
   @@map("vehicles_host_profiles")
 }
 
 model VehiclesAvailability {
-  id        String   @id @default(cuid())
-  vehicleId String
-  date      DateTime
-  isAvailable Boolean @default(true)
-  price     Decimal?
+  id          String   @id @default(cuid())
+  vehicleId   String
+  date        DateTime
+  isAvailable Boolean  @default(true)
+  price       Decimal?
 
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
 
@@ -312,27 +353,29 @@ model VehiclesAvailability {
 }
 
 model VehiclesBooking {
-  id          String   @id @default(cuid())
-  vehicleId   String
-  userId      String
-  startDate   DateTime
-  endDate     DateTime
-  totalDays   Int
-  totalPrice  Decimal
-  currency    String   @default("USD")
-  status      String   // pending, confirmed, cancelled, completed
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  vehicleId  String
+  userId     String
+  startDate  DateTime
+  endDate    DateTime
+  totalDays  Int
+  totalPrice Decimal
+  currency   String   @default("USD")
+  status     String // pending, confirmed, cancelled, completed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle  Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments Payment[]
 
   // Airport pickup/dropoff
-  isAirportPickup   Boolean @default(false)
-  airportFee        Decimal? @default(0)
-  flightNumber      String?
-  terminal          String?
+  isAirportPickup       Boolean              @default(false)
+  airportFee            Decimal?             @default(0)
+  flightNumber          String?
+  terminal              String?
+  VehiclesHostProfile   VehiclesHostProfile? @relation(fields: [vehiclesHostProfileId], references: [id])
+  vehiclesHostProfileId String?
 
   @@map("vehicles_bookings")
 }
@@ -341,7 +384,7 @@ model VehiclesReview {
   id        String   @id @default(cuid())
   vehicleId String
   userId    String
-  rating    Int      // 1-5
+  rating    Int // 1-5
   comment   String?
   createdAt DateTime @default(now())
 
@@ -354,38 +397,38 @@ model VehiclesReview {
 
 // Drivers (My-Drivers)
 model DriverProfile {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  licenseNumber String?
-  vehicleMake String?
-  vehicleModel String?
-  vehicleYear Int?
-  licensePlate String?
-  rating      Float?   @default(0)
-  totalRides  Int      @default(0)
-  isOnline    Boolean  @default(false)
-  lastOnline  DateTime?
-  currentLocation String?
-  currentLatitude Float?
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  licenseNumber    String?
+  vehicleMake      String?
+  vehicleModel     String?
+  vehicleYear      Int?
+  licensePlate     String?
+  rating           Float?    @default(0)
+  totalRides       Int       @default(0)
+  isOnline         Boolean   @default(false)
+  lastOnline       DateTime?
+  currentLocation  String?
+  currentLatitude  Float?
   currentLongitude Float?
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isVerified       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  rides       Ride[]
-  savedBy     SavedDriver[]
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rides   Ride[]
+  savedBy SavedDriver[]
 
   @@map("driver_profiles")
 }
 
 model SavedDriver {
-  id          String   @id @default(cuid())
-  userId      String
-  driverId    String
-  nickname    String?
-  notes       String?
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  driverId  String
+  nickname  String?
+  notes     String?
+  createdAt DateTime @default(now())
 
   user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
@@ -395,22 +438,22 @@ model SavedDriver {
 }
 
 model Ride {
-  id          String   @id @default(cuid())
-  userId      String
-  driverId    String
-  pickupLocation String
+  id              String   @id @default(cuid())
+  userId          String
+  driverId        String
+  pickupLocation  String
   dropoffLocation String
-  pickupTime  DateTime
-  status      String   // requested, accepted, in_progress, completed, cancelled
-  price       Decimal
-  currency    String   @default("USD")
-  distance    Float?   // in km
-  duration    Int?     // in minutes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  pickupTime      DateTime
+  status          String // requested, accepted, in_progress, completed, cancelled
+  price           Decimal
+  currency        String   @default("USD")
+  distance        Float? // in km
+  duration        Int? // in minutes
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  driver DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  driver   DriverProfile @relation(fields: [driverId], references: [id], onDelete: Cascade)
   payments Payment[]
   messages RideMessage[]
 
@@ -432,36 +475,36 @@ model RideMessage {
 
 // Payments & Trust
 model Payment {
-  id          String   @id @default(cuid())
-  amount      Decimal
-  currency    String   @default("USD")
-  status      String   // pending, completed, failed, refunded
-  paymentMethod String // stripe, stripe_connect
-  stripePaymentId String?
+  id                     String   @id @default(cuid())
+  amount                 Decimal
+  currency               String   @default("USD")
+  status                 String // pending, completed, failed, refunded
+  paymentMethod          String // stripe, stripe_connect
+  stripePaymentId        String?
   stripeConnectAccountId String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
   // Polymorphic relationships
-  bookingId   String?  // For stays or vehicles bookings
-  bookingType String?  // 'stays' or 'vehicles'
-  rideId      String?  // For rides
+  staysBookingId    String? // For stays bookings
+  vehiclesBookingId String? // For vehicles bookings  
+  rideId            String? // For rides
 
   // Relationships
-  staysBooking   StaysBooking?   @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  vehiclesBooking VehiclesBooking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  ride           Ride?           @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  staysBooking    StaysBooking?    @relation(fields: [staysBookingId], references: [id], onDelete: Cascade)
+  vehiclesBooking VehiclesBooking? @relation(fields: [vehiclesBookingId], references: [id], onDelete: Cascade)
+  ride            Ride?            @relation(fields: [rideId], references: [id], onDelete: Cascade)
 
   @@map("payments")
 }
 
 model TrustScore {
-  id          String   @id @default(cuid())
-  userId      String
-  score       Float    // 0-100
-  category    String   // overall, stays, vehicles, drivers
-  reasons     String[]
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  score     Float // 0-100
+  category  String // overall, stays, vehicles, drivers
+  reasons   String[]
+  createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -470,13 +513,13 @@ model TrustScore {
 }
 
 model Dispute {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   bookingId   String?
-  bookingType String?  // 'stays', 'vehicles', 'ride'
+  bookingType String? // 'stays', 'vehicles', 'ride'
   reason      String
-  status      String   // open, in_review, resolved, closed
-  createdAt   DateTime @default(now())
+  status      String // open, in_review, resolved, closed
+  createdAt   DateTime  @default(now())
   resolvedAt  DateTime?
   resolution  String?
 
@@ -487,21 +530,23 @@ model Dispute {
 
 // Bangkok-specific models (RentShield TH)
 model LeaseTemplate {
-  id          String   @id @default(cuid())
-  name        String
-  content     String   // JSON or template content
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  name      String
+  content   String // JSON or template content
+  locale    String   @default("en") // en, th, etc.
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
+  @@index([locale])
   @@map("lease_templates")
 }
 
 model AirportRule {
   id          String   @id @default(cuid())
   airportCode String
-  rules       String   // JSON rules configuration
-  fees        String   // JSON fee structure
+  rules       String // JSON rules configuration
+  fees        String // JSON fee structure
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -510,3 +555,155 @@ model AirportRule {
   @@map("airport_rules")
 }
 
+// Immigration & Visa Services
+model VisaApplication {
+  id               String                @id @default(cuid())
+  userId           String
+  visaPathId       String
+  status           VisaApplicationStatus @default(draft)
+  nationality      String // ISO country code
+  destination      String // ISO country code
+  purpose          VisaPurpose
+  stayLengthDays   Int
+  hasDependents    Boolean               @default(false)
+  dependentCount   Int                   @default(0)
+  currentResidence String? // Current country of residence
+  referenceNumber  String?
+  submittedAt      DateTime?
+  decisionAt       DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  // Relationships
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklist ChecklistItem[]
+  documents DocumentVaultItem[]
+  reminders Reminder[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([nationality, destination])
+  @@map("visa_applications")
+}
+
+model ChecklistItem {
+  id                   String            @id @default(cuid())
+  applicationId        String
+  title                String
+  description          String?
+  dueDate              DateTime?
+  completed            Boolean           @default(false)
+  priority             ChecklistPriority @default(medium)
+  estimatedTimeMinutes Int?
+  dependencies         String[] // IDs of items that must be completed first
+  formId               String? // Reference to form if applicable
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  application VisaApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+  @@index([dueDate])
+  @@map("checklist_items")
+}
+
+model DocumentVaultItem {
+  id             String       @id @default(cuid())
+  userId         String
+  applicationId  String?
+  type           DocumentType
+  name           String
+  description    String?
+  fileName       String
+  fileSize       Int
+  mimeType       String
+  encrypted      Boolean      @default(true)
+  expirationDate DateTime?
+  uploadedAt     DateTime     @default(now())
+  accessedAt     DateTime?
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application VisaApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([type])
+  @@index([expirationDate])
+  @@map("document_vault_items")
+}
+
+model Reminder {
+  id            String              @id @default(cuid())
+  userId        String
+  applicationId String?
+  type          ReminderType
+  title         String
+  description   String
+  dueDate       DateTime
+  completed     Boolean             @default(false)
+  notified      Boolean             @default(false)
+  recurrence    ReminderRecurrence?
+  createdAt     DateTime            @default(now())
+
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application VisaApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([dueDate])
+  @@index([type])
+  @@map("reminders")
+}
+
+// Enums for Immigration
+enum VisaApplicationStatus {
+  draft
+  submitted
+  processing
+  approved
+  rejected
+  withdrawn
+}
+
+enum VisaPurpose {
+  tourism
+  business
+  study
+  work
+  remote_work
+  family
+  other
+}
+
+enum ChecklistPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum DocumentType {
+  passport
+  photo
+  bank_statement
+  proof_of_funds
+  employment_letter
+  invitation_letter
+  other
+}
+
+enum ReminderType {
+  ninety_day_report
+  tm30
+  visa_renewal
+  extension
+  appointment
+  document_expiry
+}
+
+enum ReminderRecurrence {
+  once
+  daily
+  weekly
+  monthly
+  quarterly
+  yearly
+}

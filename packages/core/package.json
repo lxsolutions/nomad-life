@@ -1,6 +1,3 @@
-
-
-
 {
   "name": "@nomad-life/core",
   "version": "1.0.0",
@@ -16,6 +13,7 @@
   },
   "dependencies": {
     "@nomad-life/db": "workspace:*",
+    "stripe": "^18.5.0",
     "zod": "^3.0.0"
   },
   "devDependencies": {
@@ -25,5 +23,3 @@
     "vitest": "^1.0.0"
   }
 }
-
-
