@@ -27,12 +27,16 @@ export class ImmigrationService {
       id: path.id,
       name: path.name,
       type: path.type,
-      stayLimit: path.stayLimit,
-      requirements: path.requirements,
-      documents: path.documents,
-      processingTime: path.processingTime,
-      fees: path.fees,
       confidence: path.confidence,
+      stayLimitDays: path.stayLimitDays,
+      extensionsPossible: path.extensionsPossible,
+      extensionLimitDays: path.extensionLimitDays,
+      estimatedApprovalRate: path.estimatedApprovalRate,
+      requirements: path.requirements,
+      documentsRequired: path.documentsRequired,
+      estimatedProcessingTimeDays: path.estimatedProcessingTimeDays,
+      governmentFees: path.governmentFees,
+      serviceFees: path.serviceFees,
       notes: path.notes
     }));
   }
@@ -48,14 +52,14 @@ export class ImmigrationService {
     const checklist: ChecklistItem[] = [];
 
     // Add document requirements
-    selectedPath.documents?.forEach((doc, index) => {
+    selectedPath.documentsRequired?.forEach((doc, index) => {
       checklist.push({
         id: `doc-${index}`,
-        title: `Prepare ${doc.description}`,
-        category: 'documents',
-        dueDate: null,
+        title: `Prepare ${doc}`,
+        description: `Required document: ${doc}`,
         completed: false,
-        priority: doc.optional ? 'low' : 'high'
+        priority: 'high',
+        estimatedTimeMinutes: 60
       });
     });
 
@@ -63,20 +67,21 @@ export class ImmigrationService {
     checklist.push({
       id: 'apply',
       title: 'Submit visa application',
-      category: 'application',
-      dueDate: null,
+      description: 'Complete and submit the visa application form',
       completed: false,
-      priority: 'high'
+      priority: 'high',
+      estimatedTimeMinutes: 120
     });
 
     // Add post-arrival tasks
     checklist.push({
       id: 'arrival-report',
       title: 'Complete arrival reporting (TM30)',
-      category: 'post-arrival',
-      dueDate: 'arrival+24h',
+      description: 'Complete arrival reporting within 24 hours of arrival',
       completed: false,
-      priority: 'medium'
+      priority: 'medium',
+      estimatedTimeMinutes: 30,
+      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
     });
 
     return checklist;
@@ -92,13 +97,10 @@ export class ImmigrationService {
     return {
       id: `visa-${Date.now()}`,
       userId,
-      pathId,
+      visaPathId: pathId,
       status: 'draft',
-      nationality: input.nationality,
-      destination: input.destination,
-      purpose: input.purpose,
-      stayLengthDays: input.stayLengthDays,
       checklist,
+      documents: [],
       createdAt: new Date(),
       updatedAt: new Date()
     };
