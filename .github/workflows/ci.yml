@@ -27,7 +27,7 @@ jobs:
         with:
           node-version: '20'
       - run: yarn install --frozen-lockfile
-      - run: yarn lint
+      - run: npx turbo run lint
 
   test:
     runs-on: ubuntu-latest
