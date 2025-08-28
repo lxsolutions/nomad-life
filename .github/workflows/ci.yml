@@ -49,7 +49,7 @@ jobs:
         with:
           node-version: '20'
       - run: yarn install --frozen-lockfile
-      - run: turbo run build
+      - run: npx turbo run build
 
   docker-build:
     runs-on: ubuntu-latest
