@@ -29,6 +29,19 @@ This is a Turborepo + pnpm monorepo with the following structure:
   - rules/ - Visa ruleset + airport configs + lease clauses
   - config/ - ESLint/TypeScript/Tailwind configs
 
+## Current Status
+
+✅ **Completed:**
+- Monorepo scaffold with Turborepo + pnpm
+- All 4 source repositories imported with git history
+- Immigration rules package with YAML loader
+- API immigration service with visa path finding
+- Shared packages: config, ui, db, core, contracts, rules
+
+🚧 **In Progress:**
+- GitHub Actions CI setup
+- Repository analysis and integration planning
+
 ## Getting Started
 
 1. Install dependencies:
@@ -48,6 +61,15 @@ This is a Turborepo + pnpm monorepo with the following structure:
    \`\`\`bash
    pnpm dev
    \`\`\`
+
+## Source Repositories
+
+The following repositories have been imported with full git history:
+
+- **NomadBooking** → `imports/nomad-booking/` (ISC license)
+- **RentShield TH** → `imports/rentshield-th/` (MIT license)  
+- **My-Drivers** → `imports/my-drivers/` (MIT license)
+- **Keyswitch** → `imports/keyswitch/` (MIT license)
 
 ## Features
 
