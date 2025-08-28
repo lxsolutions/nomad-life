@@ -5,9 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "turbo run dev --filter=web...",
-    "start": "turbo run start --filter=web",
-
-    "lint": "eslint . --ext .js,.ts,.tsx"
+    "start": "turbo run start --filter=web"
   },
   "repository": {
     "type": "git",
