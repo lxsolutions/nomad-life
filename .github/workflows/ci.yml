@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: '20'
       - run: yarn install --frozen-lockfile
-      - run: yarn test
+      - run: npx turbo run test
 
   build:
     runs-on: ubuntu-latest
