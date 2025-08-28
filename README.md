@@ -71,8 +71,8 @@ This project uses a Turborepo monorepo structure with the following key componen
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/lxsolutions/booking-app.git
-   cd booking-app
+   git clone https://github.com/lxsolutions/NomadBooking.git
+   cd NomadBooking
    ```
 
 2. Install dependencies:

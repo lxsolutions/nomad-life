@@ -36,10 +36,11 @@ export function calculateNomadScore(params: NomadScoreParams): number {
   let noiseScore = 1 - ((noiseLevelDb - minNoiseDb) / (maxNoiseDb - minNoiseDb))
   noiseScore = Math.max(0, Math.min(noiseScore, 1)) * 0.15
 
-  // Location score is already normalized to 0-1 scale
-  const locationWeighted = locationScore * 0.25
+  // Location score should be normalized to 0-1 scale, clamp if out of bounds
+  const clampedLocationScore = Math.max(0, Math.min(locationScore, 1))
+  const locationWeighted = clampedLocationScore * 0.25
 
-  return wifiScore + workspace + noiseScore + locationWeighted
+  return wifiScore + (workspace * 0.25) + noiseScore + locationWeighted
 }
 
 /**
