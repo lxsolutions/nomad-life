@@ -140,6 +140,12 @@ importers:
       '@prisma/client':
         specifier: ^5.0.0
         version: 5.22.0(prisma@5.22.0)
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
+      dotenv:
+        specifier: ^17.2.1
+        version: 17.2.1
     devDependencies:
       '@nomad-life/config':
         specifier: workspace:*
@@ -2174,6 +2180,11 @@ packages:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
     dev: true
 
+  /bcryptjs@3.0.2:
+    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+    hasBin: true
+    dev: false
+
   /binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
@@ -2585,6 +2596,11 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dotenv@17.2.1:
+    resolution: {integrity: sha512-kQhDYKZecqnM0fCnzI5eIv5L4cAe/iRI+HqMbO/hbRdTAeXDG+M9FjipUxNfbARuEg4iHIbhnhs78BCHNbSxEQ==}
+    engines: {node: '>=12'}
+    dev: false
 
   /dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
