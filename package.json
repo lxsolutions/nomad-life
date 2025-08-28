@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "dev": "turbo run dev --filter=web...",
-    "build": "turbo run build --filter=...",
     "start": "turbo run start --filter=web",
 
     "lint": "eslint . --ext .js,.ts,.tsx"
