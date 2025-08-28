@@ -19,6 +19,13 @@ model User {
   phone     String?  @unique
   name      String?
   avatar    String?
+  lineId    String?  @unique // LINE integration for Thailand
+  locale    String   @default("en") // i18n support
+  role      UserRole @default(guest)
+  kycStatus KYCStatus @default(not_started)
+  verifiedAt DateTime? // Account verification timestamp
+  ratingAvg Float?    @default(0.0) // Average rating across services
+  ratingCount Int?    @default(0)   // Number of ratings
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -46,6 +53,21 @@ model User {
   rides             Ride[]
 
   @@map("users")
+}
+
+enum UserRole {
+  guest
+  host
+  admin
+  rider
+  driver
+}
+
+enum KYCStatus {
+  not_started
+  in_progress
+  approved
+  rejected
 }
 
 model Account {
@@ -119,7 +141,15 @@ model StaysProperty {
   maxGuests   Int
   bedrooms    Int
   bathrooms    Int
+  sizeSqm     Float?   // Property size in square meters
+  floor       Int?     // Floor number
+  furnished   Boolean  @default(false) // Is the property furnished
+  minTermNights Int?   @default(30)   // Minimum stay in nights
+  petsAllowed Boolean? // Are pets allowed
+  parkingAvailable Boolean? // Parking availability
+  utilitiesNote String? // Utilities information
   isActive    Boolean  @default(true)
+  availableFrom DateTime? // When property becomes available
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -134,6 +164,8 @@ model StaysProperty {
   isBangkokProperty Boolean @default(false)
   trustScore        Float?   // NomadScore
   leaseTemplateId   String?
+  district         String?   // Bangkok district
+  transitInfo      String?   // JSON transit information (BTS/MRT)
 
   @@map("stays_properties")
 }
@@ -490,11 +522,13 @@ model LeaseTemplate {
   id          String   @id @default(cuid())
   name        String
   content     String   // JSON or template content
+  locale      String   @default("en") // en, th, etc.
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("lease_templates")
+  @@index([locale])
 }
 
 model AirportRule {
@@ -508,5 +542,158 @@ model AirportRule {
 
   @@unique([airportCode])
   @@map("airport_rules")
+}
+
+// Immigration & Visa Services
+model VisaApplication {
+  id          String   @id @default(cuid())
+  userId      String
+  visaPathId  String
+  status      VisaApplicationStatus @default(draft)
+  nationality String   // ISO country code
+  destination String   // ISO country code
+  purpose     VisaPurpose
+  stayLengthDays Int
+  hasDependents Boolean @default(false)
+  dependentCount Int    @default(0)
+  currentResidence String? // Current country of residence
+  referenceNumber String?
+  submittedAt  DateTime?
+  decisionAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relationships
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checklist   ChecklistItem[]
+  documents   DocumentVaultItem[]
+  reminders   Reminder[]
+
+  @@map("visa_applications")
+  @@index([userId])
+  @@index([status])
+  @@index([nationality, destination])
+}
+
+model ChecklistItem {
+  id          String   @id @default(cuid())
+  applicationId String
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean  @default(false)
+  priority    ChecklistPriority @default(medium)
+  estimatedTimeMinutes Int?
+  dependencies String[] // IDs of items that must be completed first
+  formId      String?   // Reference to form if applicable
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  application VisaApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("checklist_items")
+  @@index([applicationId])
+  @@index([dueDate])
+}
+
+model DocumentVaultItem {
+  id          String   @id @default(cuid())
+  userId      String
+  applicationId String?
+  type        DocumentType
+  name        String
+  description String?
+  fileName    String
+  fileSize    Int
+  mimeType    String
+  encrypted   Boolean  @default(true)
+  expirationDate DateTime?
+  uploadedAt  DateTime @default(now())
+  accessedAt  DateTime?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application VisaApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@map("document_vault_items")
+  @@index([userId])
+  @@index([type])
+  @@index([expirationDate])
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  userId      String
+  applicationId String?
+  type        ReminderType
+  title       String
+  description String
+  dueDate     DateTime
+  completed   Boolean  @default(false)
+  notified    Boolean  @default(false)
+  recurrence  ReminderRecurrence?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application VisaApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@map("reminders")
+  @@index([userId])
+  @@index([dueDate])
+  @@index([type])
+}
+
+// Enums for Immigration
+enum VisaApplicationStatus {
+  draft
+  submitted
+  processing
+  approved
+  rejected
+  withdrawn
+}
+
+enum VisaPurpose {
+  tourism
+  business
+  study
+  work
+  remote_work
+  family
+  other
+}
+
+enum ChecklistPriority {
+  critical
+  high
+  medium
+  low
+}
+
+enum DocumentType {
+  passport
+  photo
+  bank_statement
+  proof_of_funds
+  employment_letter
+  invitation_letter
+  other
+}
+
+enum ReminderType {
+  ninety_day_report
+  tm30
+  visa_renewal
+  extension
+  appointment
+  document_expiry
+}
+
+enum ReminderRecurrence {
+  once
+  daily
+  weekly
+  monthly
+  quarterly
+  yearly
 }
 
