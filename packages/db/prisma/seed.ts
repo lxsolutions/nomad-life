@@ -144,94 +144,69 @@ const USERS = [
   }
 ];
 
-// Sample listings data
-const LISTINGS = [
-  {
-    title: 'Modern Studio near BTS Asok',
-    description: 'Beautiful studio apartment in prime Sukhumvit location. Fully furnished with high-speed internet, modern kitchen, and city views. Perfect for professionals.',
-    media: ['https://picsum.photos/800/600?random=1', 'https://picsum.photos/800/600?random=2'],
-    bedrooms: 1,
-    bathrooms: 1,
-    sizeSqm: 32,
-    floor: 12,
-    furnished: true,
-    priceTHB: 18000,
-    depositTHB: 36000,
-    minTermMonths: 6,
-    availableFrom: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 1 week from now
-    pets: false,
-    utilitiesNote: 'Electricity and water not included. Internet included.',
-    parking: false
-  },
-  {
-    title: 'Luxury 2-Bedroom in Thonglor',
-    description: 'Spacious 2-bedroom condo in heart of Thonglor. Premium finishes, panoramic views, and access to all building amenities. Walking distance to BTS.',
-    media: ['https://picsum.photos/800/600?random=3', 'https://picsum.photos/800/600?random=4'],
-    bedrooms: 2,
-    bathrooms: 2,
-    sizeSqm: 75,
-    floor: 25,
-    furnished: true,
-    priceTHB: 45000,
-    depositTHB: 90000,
-    minTermMonths: 12,
-    availableFrom: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 2 weeks from now
-    pets: true,
-    utilitiesNote: 'All utilities included except electricity over 500 units',
-    parking: true
-  },
-  {
-    title: 'Cozy 1-Bedroom near Ari BTS',
-    description: 'Charming 1-bedroom apartment in trendy Ari neighborhood. Recently renovated with new furniture and appliances. Close to cafes and restaurants.',
-    media: ['https://picsum.photos/800/600?random=5', 'https://picsum.photos/800/600?random=6'],
-    bedrooms: 1,
-    bathrooms: 1,
-    sizeSqm: 45,
-    floor: 8,
-    furnished: true,
-    priceTHB: 22000,
-    depositTHB: 44000,
-    minTermMonths: 12,
-    availableFrom: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
-    pets: false,
-    utilitiesNote: 'Water included. Electricity and internet extra.',
-    parking: false
-  },
-  {
-    title: 'Spacious 3-Bedroom Family Condo',
-    description: 'Large family-friendly condo with 3 bedrooms and 2 bathrooms. Great for families or roommates. Quiet building with excellent security.',
-    media: ['https://picsum.photos/800/600?random=7', 'https://picsum.photos/800/600?random=8'],
-    bedrooms: 3,
-    bathrooms: 2,
-    sizeSqm: 110,
-    floor: 15,
-    furnished: true,
-    priceTHB: 55000,
-    depositTHB: 110000,
-    minTermMonths: 12,
-    availableFrom: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 1 month from now
-    pets: true,
-    utilitiesNote: 'All utilities separate. Metered billing.',
-    parking: true
-  },
-  {
-    title: 'Budget Studio near On Nut BTS',
-    description: 'Affordable studio apartment with basic furnishings. Good location near BTS and local markets. Perfect for students or budget-conscious renters.',
-    media: ['https://picsum.photos/800/600?random=9', 'https://picsum.photos/800/600?random=10'],
-    bedrooms: 1,
-    bathrooms: 1,
-    sizeSqm: 28,
-    floor: 6,
-    furnished: true,
-    priceTHB: 12000,
-    depositTHB: 24000,
-    minTermMonths: 6,
-    availableFrom: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
-    pets: false,
-    utilitiesNote: 'All utilities extra. Shared meter for building.',
-    parking: false
+// Generate 50 realistic Bangkok listings across Sukhumvit, Sathorn, Ari, Thonglor, Phrom Phong
+const generateListings = () => {
+  const listings = [];
+  const districts = ['Sukhumvit', 'Sathorn', 'Ari', 'Thonglor', 'Phrom Phong'];
+  const buildingTypes = ['Condo', 'Apartment', 'Serviced Residence'];
+  const furnishings = ['Fully furnished', 'Semi-furnished', 'Unfurnished'];
+  
+  const titles = [
+    'Modern Studio', 'Luxury 1-Bedroom', 'Spacious 2-Bedroom', 'Executive Suite', 
+    'City View Condo', 'Garden Apartment', 'Penthouse Unit', 'Family Residence',
+    'Budget Studio', 'Premium Loft', 'Corner Unit', 'Sky Villa', 'River View',
+    'BTS Access', 'MRT Connected', 'Quiet Retreat', 'Urban Oasis', 'Luxury Pad',
+    'Executive Home', 'Designer Unit'
+  ];
+  
+  const descriptions = [
+    'Beautiful apartment with modern finishes and stunning city views.',
+    'Spacious layout perfect for professionals or couples.',
+    'Recently renovated with high-quality furnishings and appliances.',
+    'Prime location with easy access to public transportation.',
+    'Quiet building with excellent security and amenities.',
+    'Perfect for long-term stays with all necessities included.',
+    'Great investment property with high rental potential.',
+    'Family-friendly environment with nearby schools and parks.',
+    'Walking distance to shopping malls and restaurants.',
+    'Luxury living experience with premium building features.'
+  ];
+
+  for (let i = 0; i < 50; i++) {
+    const district = districts[i % districts.length];
+    const bedrooms = Math.floor(Math.random() * 3) + 1; // 1-3 bedrooms
+    const sizeSqm = 25 + Math.floor(Math.random() * 80); // 25-105 sqm
+    const priceBase = bedrooms * 10000 + sizeSqm * 200;
+    const priceTHB = Math.round(priceBase * (0.8 + Math.random() * 0.4)); // ±20% variation
+    const depositTHB = priceTHB * 2;
+    
+    listings.push({
+      title: `${titles[i % titles.length]} in ${district}`,
+      description: `${descriptions[i % descriptions.length]} Located in the heart of ${district}.`,
+      media: [
+        `https://picsum.photos/800/600?random=${i * 2 + 1}`,
+        `https://picsum.photos/800/600?random=${i * 2 + 2}`,
+        `https://picsum.photos/800/600?random=${i * 2 + 3}`
+      ],
+      bedrooms,
+      bathrooms: Math.max(1, bedrooms - 1),
+      sizeSqm,
+      floor: Math.floor(Math.random() * 30) + 1,
+      furnished: Math.random() > 0.2, // 80% furnished
+      priceTHB,
+      depositTHB,
+      minTermMonths: [6, 12, 24][Math.floor(Math.random() * 3)],
+      availableFrom: new Date(Date.now() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+      pets: Math.random() > 0.7, // 30% allow pets
+      utilitiesNote: ['Utilities included', 'Electricity extra', 'Water and electricity separate'][Math.floor(Math.random() * 3)],
+      parking: Math.random() > 0.5 // 50% have parking
+    });
   }
-];
+  
+  return listings;
+};
+
+const LISTINGS = generateListings();
 
 async function main() {
   console.log('🌱 Starting seed...');
