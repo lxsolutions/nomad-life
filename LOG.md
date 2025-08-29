@@ -37,3 +37,9 @@ Date: 2025-08-29
 - Shared .env.example created with common environment variables
 - Existing monorepo shared configurations maintained (packages/config, packages/ui, etc.)
 - PR creation may encounter 422 error, may need manual creation
+
+## Deprecation PRs Created
+- keyswitch: https://github.com/lxsolutions/keyswitch/pull/2
+- my-drivers: https://github.com/lxsolutions/my-drivers/pull/2
+- rentshield-th: PR creation failed (422 error)
+- NomadBooking: PR creation failed (422 error)
