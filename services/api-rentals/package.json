@@ -1,5 +1,5 @@
 {
-  "name": "rentshield-th",
+  "name": "@nomad-life/api-rentals",
   "version": "1.0.0",
   "description": "Bangkok rental finder + lease-protection platform",
   "private": true,

@@ -1,5 +1,5 @@
 {
-  "name": "keyswitch",
+  "name": "@nomad-life/api-vehicles",
   "version": "0.1.0",
   "private": true,
   "packageManager": "npm@10.9.0",
