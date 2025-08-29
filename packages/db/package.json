@@ -1,6 +1,3 @@
-
-
-
 {
   "name": "@nomad-life/db",
   "version": "1.0.0",
@@ -14,10 +11,14 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx seed.ts",
+    "db:seed:sqlite": "DATABASE_URL=file:./dev.db tsx seed-sqlite.ts",
+    "db:generate:sqlite": "DATABASE_URL=file:./dev.db prisma generate --schema=./prisma/schema.sqlite.prisma",
     "lint": "eslint . --ext .ts,.tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
-    "@prisma/client": "^5.0.0"
+    "@prisma/client": "^5.0.0",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.1"
   },
   "devDependencies": {
     "@nomad-life/config": "workspace:*",
@@ -27,5 +28,3 @@
     "typescript": "^5.0.0"
   }
 }
-
-

@@ -15,6 +15,7 @@ export class ImmigrationService {
 
   async findVisaPaths(input: VisaWizardInput): Promise<VisaPathOption[]> {
     const { nationality, destination, purpose, stayLengthDays } = input;
+    console.log('Finding visa paths for:', { nationality, destination, purpose, stayLengthDays });
     
     const paths = await this.rules.findVisaPaths(
       nationality,
@@ -23,16 +24,22 @@ export class ImmigrationService {
       stayLengthDays
     );
 
+    console.log('Found paths:', paths);
+    
     return paths.map(path => ({
       id: path.id,
       name: path.name,
       type: path.type,
-      stayLimit: path.stayLimit,
-      requirements: path.requirements,
-      documents: path.documents,
-      processingTime: path.processingTime,
-      fees: path.fees,
       confidence: path.confidence,
+      stayLimitDays: path.stayLimit.value,
+      extensionsPossible: !!path.extensions && path.extensions.length > 0,
+      extensionLimitDays: path.extensions?.[0]?.limit?.value,
+      estimatedApprovalRate: 95, // Default high confidence for demo
+      requirements: path.requirements,
+      documentsRequired: path.documents.map(doc => doc.description),
+      estimatedProcessingTimeDays: path.processingTime.max,
+      governmentFees: path.fees.government,
+      serviceFees: path.fees.service,
       notes: path.notes
     }));
   }
@@ -45,17 +52,19 @@ export class ImmigrationService {
       throw new Error(`Visa path ${pathId} not found`);
     }
 
+    console.log('Selected path for checklist:', JSON.stringify(selectedPath, null, 2));
+    
     const checklist: ChecklistItem[] = [];
 
-    // Add document requirements
-    selectedPath.documents?.forEach((doc, index) => {
+    // Add document requirements from requirements array
+    selectedPath.requirements?.forEach((req, index) => {
       checklist.push({
-        id: `doc-${index}`,
-        title: `Prepare ${doc.description}`,
-        category: 'documents',
-        dueDate: null,
+        id: `req-${index}`,
+        title: `Prepare ${req}`,
+        description: `Requirement: ${req}`,
         completed: false,
-        priority: doc.optional ? 'low' : 'high'
+        priority: 'high',
+        estimatedTimeMinutes: 60
       });
     });
 
@@ -63,20 +72,21 @@ export class ImmigrationService {
     checklist.push({
       id: 'apply',
       title: 'Submit visa application',
-      category: 'application',
-      dueDate: null,
+      description: 'Complete and submit the visa application form',
       completed: false,
-      priority: 'high'
+      priority: 'high',
+      estimatedTimeMinutes: 120
     });
 
     // Add post-arrival tasks
     checklist.push({
       id: 'arrival-report',
       title: 'Complete arrival reporting (TM30)',
-      category: 'post-arrival',
-      dueDate: 'arrival+24h',
+      description: 'Complete arrival reporting within 24 hours of arrival',
       completed: false,
-      priority: 'medium'
+      priority: 'medium',
+      estimatedTimeMinutes: 30,
+      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
     });
 
     return checklist;
@@ -92,13 +102,10 @@ export class ImmigrationService {
     return {
       id: `visa-${Date.now()}`,
       userId,
-      pathId,
+      visaPathId: pathId,
       status: 'draft',
-      nationality: input.nationality,
-      destination: input.destination,
-      purpose: input.purpose,
-      stayLengthDays: input.stayLengthDays,
       checklist,
+      documents: [],
       createdAt: new Date(),
       updatedAt: new Date()
     };

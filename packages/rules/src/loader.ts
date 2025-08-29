@@ -1,9 +1,9 @@
 
 
 
-import fs from 'fs/promises';
-import path from 'path';
-import yaml from 'js-yaml';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 import { ImmigrationRuleSchema, ImmigrationRule } from './types/immigration';
 import { AirportConfigSchema, AirportConfig } from './types/airport';
 import { LeaseClauseSchema, LeaseTemplateSchema } from './types/lease';

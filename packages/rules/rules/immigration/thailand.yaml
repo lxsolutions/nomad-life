@@ -111,6 +111,11 @@ countries:
           requirements:
             - "Passport valid for at least 6 months"
             - "Proof of onward travel"
+          documents:
+            - type: "passport"
+              description: "Valid passport"
+            - type: "flight_ticket"
+              description: "Onward flight ticket"
           processingTime:
             min: 0
             max: 0
