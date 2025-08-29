@@ -15,6 +15,7 @@ export class ImmigrationService {
 
   async findVisaPaths(input: VisaWizardInput): Promise<VisaPathOption[]> {
     const { nationality, destination, purpose, stayLengthDays } = input;
+    console.log('Finding visa paths for:', { nationality, destination, purpose, stayLengthDays });
     
     const paths = await this.rules.findVisaPaths(
       nationality,
@@ -23,20 +24,22 @@ export class ImmigrationService {
       stayLengthDays
     );
 
+    console.log('Found paths:', paths);
+    
     return paths.map(path => ({
       id: path.id,
       name: path.name,
       type: path.type,
       confidence: path.confidence,
-      stayLimitDays: path.stayLimitDays,
-      extensionsPossible: path.extensionsPossible,
-      extensionLimitDays: path.extensionLimitDays,
-      estimatedApprovalRate: path.estimatedApprovalRate,
+      stayLimitDays: path.stayLimit.value,
+      extensionsPossible: !!path.extensions && path.extensions.length > 0,
+      extensionLimitDays: path.extensions?.[0]?.limit?.value,
+      estimatedApprovalRate: 95, // Default high confidence for demo
       requirements: path.requirements,
-      documentsRequired: path.documentsRequired,
-      estimatedProcessingTimeDays: path.estimatedProcessingTimeDays,
-      governmentFees: path.governmentFees,
-      serviceFees: path.serviceFees,
+      documentsRequired: path.documents.map(doc => doc.description),
+      estimatedProcessingTimeDays: path.processingTime.max,
+      governmentFees: path.fees.government,
+      serviceFees: path.fees.service,
       notes: path.notes
     }));
   }
@@ -49,14 +52,16 @@ export class ImmigrationService {
       throw new Error(`Visa path ${pathId} not found`);
     }
 
+    console.log('Selected path for checklist:', JSON.stringify(selectedPath, null, 2));
+    
     const checklist: ChecklistItem[] = [];
 
-    // Add document requirements
-    selectedPath.documentsRequired?.forEach((doc, index) => {
+    // Add document requirements from requirements array
+    selectedPath.requirements?.forEach((req, index) => {
       checklist.push({
-        id: `doc-${index}`,
-        title: `Prepare ${doc}`,
-        description: `Required document: ${doc}`,
+        id: `req-${index}`,
+        title: `Prepare ${req}`,
+        description: `Requirement: ${req}`,
         completed: false,
         priority: 'high',
         estimatedTimeMinutes: 60

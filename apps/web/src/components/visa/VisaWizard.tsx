@@ -10,7 +10,9 @@ export function VisaWizard() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<Partial<VisaWizardInput & { selectedPathId?: string }>>({});
   const [paths, setPaths] = useState<VisaPathOption[]>([]);
+  const [checklist, setChecklist] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [checklistLoading, setChecklistLoading] = useState(false);
 
   const handleInputChange = (field: keyof VisaWizardInput, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -49,8 +51,36 @@ export function VisaWizard() {
         setLoading(false);
       }
     } else if (step === 2) {
-      // Move to checklist step
-      setStep(3);
+      // Generate checklist for selected path
+      if (!formData.selectedPathId) {
+        alert('Please select a visa option');
+        return;
+      }
+      
+      setChecklistLoading(true);
+      try {
+        // Call API to get checklist
+        const response = await fetch('/api/immigration/checklist/' + formData.selectedPathId, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        if (response.ok) {
+          const checklistData = await response.json();
+          setChecklist(checklistData);
+          setStep(3);
+        } else {
+          throw new Error('Failed to fetch checklist');
+        }
+      } catch (error) {
+        console.error('Error fetching checklist:', error);
+        alert('Failed to generate checklist. Please try again.');
+      } finally {
+        setChecklistLoading(false);
+      }
     }
   };
 
@@ -269,19 +299,97 @@ export function VisaWizard() {
         </div>
       )}
 
-      {/* Step 3: Checklist (placeholder) */}
+      {/* Step 3: Checklist */}
       {step === 3 && (
-        <div className="text-center py-8">
-          <h2 className="text-2xl font-semibold mb-4">Checklist Generation</h2>
-          <p className="text-muted-foreground">
-            Checklist functionality will be implemented in the next step.
-          </p>
-          <button
-            onClick={handleBack}
-            className="mt-4 px-6 py-2 border border-muted rounded-md hover:bg-muted"
-          >
-            Back
-          </button>
+        <div className="space-y-6">
+          <h2 className="text-2xl font-semibold">Your Visa Checklist</h2>
+          
+          {checklistLoading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Generating your checklist...</p>
+            </div>
+          ) : checklist.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No checklist items found.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {checklist.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-start p-4 border rounded-lg"
+                >
+                  <input
+                    type="checkbox"
+                    checked={item.completed}
+                    onChange={() => {
+                      // Toggle completion
+                      setChecklist(prev => prev.map(i => 
+                        i.id === item.id ? { ...i, completed: !i.completed } : i
+                      ));
+                    }}
+                    className="w-5 h-5 mt-1 mr-4"
+                  />
+                  <div className="flex-1">
+                    <h3 className="font-medium">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <div className="mt-2 flex items-center space-x-4 text-xs">
+                      <span className={`px-2 py-1 rounded-full ${
+                        item.priority === 'high' ? 'bg-red-100 text-red-800' :
+                        item.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {item.priority} priority
+                      </span>
+                      {item.estimatedTimeMinutes && (
+                        <span className="text-muted-foreground">
+                          ⏱️ {item.estimatedTimeMinutes} min
+                        </span>
+                      )}
+                      {item.dueDate && (
+                        <span className="text-muted-foreground">
+                          📅 Due: {new Date(item.dueDate).toLocaleDateString()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <div className="flex justify-between">
+            <button
+              onClick={handleBack}
+              className="px-6 py-2 border border-muted rounded-md hover:bg-muted"
+            >
+              Back
+            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => {
+                  // Save checklist to localStorage
+                  const savedChecklists = localStorage.getItem('visaChecklists');
+                  const existingChecklists = savedChecklists ? JSON.parse(savedChecklists) : [];
+                  const updatedChecklists = [...existingChecklists, ...checklist];
+                  localStorage.setItem('visaChecklists', JSON.stringify(updatedChecklists));
+                  alert('Checklist saved! You can access it later from the "My Checklist" tab.');
+                }}
+                className="px-6 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              >
+                Save Checklist
+              </button>
+              <button
+                onClick={() => {
+                  // Link to drivers/vehicles
+                  alert('Redirecting to Drivers/Vehicles for immigration trips...');
+                }}
+                className="px-6 py-2 border border-primary text-primary rounded-md hover:bg-primary/10"
+              >
+                Get Transportation
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
